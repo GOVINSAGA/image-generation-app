@@ -3,10 +3,51 @@ import base64
 from together import Together
 import os
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 app = Flask(__name__)
 API_KEY = os.getenv('TOGETHER_API_KEY')
+
+def contains_inappropriate_content(prompt):
+    """Check if the prompt contains inappropriate content"""
+    inappropriate_terms = [
+        'nude', 'naked', 'nsfw', 'xxx', 'porn', 'sexual',
+        'explicit', 'adult', '18+', 'erotic', 'leaked',
+    ]
+    
+    prompt_lower = prompt.lower()
+    
+    for term in inappropriate_terms:
+        if term in prompt_lower:
+            return True
+            
+    problematic_patterns = [
+        r'\b(18|19|20|21)\s*\+',
+        r'nsfw',
+        r'xxx',
+    ]
+    
+    for pattern in problematic_patterns:
+        if re.search(pattern, prompt_lower):
+            return True
+    
+    return False
+
+def sanitize_prompt(prompt):
+    """Sanitize the prompt by adding safety terms"""
+    safety_terms = [
+        "safe for work",
+        "family friendly",
+        "appropriate content only",
+        "pg rated",
+        "high quality",
+        "detailed",
+        "4k"
+    ]
+    
+    sanitized_prompt = f"{prompt}, {', '.join(safety_terms)}"
+    return sanitized_prompt
 
 @app.route('/')
 def index():
@@ -20,23 +61,25 @@ def generate():
 
         prompt = request.form.get("prompt")
         
-        # Enhanced API parameters for better quality
+        if contains_inappropriate_content(prompt):
+            return "Inappropriate content detected. Please modify your prompt.", 400
+        
+        safe_prompt = sanitize_prompt(prompt)
+        
         client = Together(api_key=API_KEY)
+        
+        # Updated parameters to comply with API limitations
         response = client.images.generate(
-            prompt=prompt,
+            prompt=safe_prompt,
             model="black-forest-labs/FLUX.1-schnell-Free",
-            width=1024,  # Larger size for better detail
+            width=1024,
             height=1024,
-            steps=30,    # More steps for better quality
+            steps=4,  # Maximum allowed steps
             n=1,
             response_format="b64_json",
-            # Additional parameters for quality
-            cfg_scale=7.5,  # Controls how closely the image follows the prompt (default is 7.0)
-            scheduler="DDIM",  # Different scheduler can affect quality
-            style_preset="enhance",  # Can be used if supported by the model
-            seed=None  # Random seed for variation
+            cfg_scale=7.5,  # Keeping this for better prompt adherence
         )
-
+        
         img_data = response.data[0].b64_json
         img_bytes = base64.b64decode(img_data)
         

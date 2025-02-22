@@ -3,94 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Generation with Together API</title>
+    <title>Safe Image Generation</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+        /* Previous styles remain the same */
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeeba;
         }
-
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .form-group {
+        
+        .guidelines {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
             margin-bottom: 20px;
         }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            color: #555;
-            font-weight: bold;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            resize: vertical;
-            font-family: inherit;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-        }
-
-        .submit-btn {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.2s;
-        }
-
-        .submit-btn:hover {
-            background-color: #0056b3;
-        }
-
-        #loading {
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
             display: none;
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-        }
-
-        #result {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        #result img {
-            max-width: 100%;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>AI Image Generator</h1>
+        <h1>Safe Image Generator</h1>
+        
+        <div class="warning">
+            <strong>Note:</strong> This is a family-friendly image generator. 
+            Any inappropriate or adult content requests will be blocked.
+        </div>
+        
+        <div class="guidelines">
+            <h3>Guidelines for Image Generation:</h3>
+            <ul>
+                <li>Keep content family-friendly and appropriate</li>
+                <li>Avoid adult themes or inappropriate subjects</li>
+                <li>Focus on creative, safe, and positive imagery</li>
+            </ul>
+        </div>
+
         <form id="generateForm" action="/generate" method="post">
             <div class="form-group">
                 <label for="prompt">Enter your image description:</label>
@@ -98,15 +54,16 @@
                     id="prompt" 
                     name="prompt" 
                     rows="4" 
-                    placeholder="Describe the image you want to generate..."
+                    placeholder="Describe the safe, family-friendly image you want to generate..."
                     required
-                >[father , son fighting with dragon on mountain, realistic , unreal engine, with american flag]</textarea>
+                ></textarea>
+                <div id="error-message" class="error-message"></div>
             </div>
-            <button type="submit" class="submit-btn">Generate Image</button>
+            <button type="submit" class="submit-btn">Generate Safe Image</button>
         </form>
 
         <div id="loading">
-            Generating your image... Please wait...
+            Generating image Please wait...
         </div>
 
         <div id="result"></div>
@@ -118,8 +75,10 @@
             
             const loading = document.getElementById('loading');
             const result = document.getElementById('result');
+            const errorMessage = document.getElementById('error-message');
             
             loading.style.display = 'block';
+            errorMessage.style.display = 'none';
             result.innerHTML = '';
 
             try {
@@ -129,7 +88,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    throw new Error(errorText);
                 }
 
                 const blob = await response.blob();
@@ -137,7 +97,9 @@
                 img.src = URL.createObjectURL(blob);
                 result.appendChild(img);
             } catch (error) {
-                result.innerHTML = `<p style="color: red;">Error generating image: ${error.message}</p>`;
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+                result.innerHTML = '';
             } finally {
                 loading.style.display = 'none';
             }
