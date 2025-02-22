@@ -4,7 +4,7 @@ pip install flask
 
 pip install together
 
-
+//ADD you own .env file with API_KEY in root folder
 
 
 git add .perticular file name
