@@ -7,11 +7,19 @@ pip install together
 //ADD you own .env file with API_KEY in root folder
 
 
+// for pushing file into github
 git add .perticular file name
 
 git commit -m "any message you want to push"
 
 git push origin master
+
+
+//for removing .env file for getting pushed into github
+git rm --cached .env
+git commit -m "Remove .env from tracking"
+
+
 
 
 Good prompt structure:
