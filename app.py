@@ -4,7 +4,6 @@ from together import Together
 import os
 from dotenv import load_dotenv
 
-# here code begins
 load_dotenv()
 app = Flask(__name__)
 API_KEY = os.getenv('TOGETHER_API_KEY')
